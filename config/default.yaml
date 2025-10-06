@@ -1,0 +1,126 @@
+# Default configuration for Multi-Agent Code Review System
+
+# Application settings
+application:
+  name: "Multi-Agent Code Review"
+  version: "0.1.0"
+  environment: "development"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/app.log"
+
+# Parser configuration
+parsing:
+  supported_languages:
+    - python
+    - javascript
+    - typescript
+    - java
+
+  max_file_size_mb: 10.0
+  timeout_seconds: 30
+
+  skip_patterns:
+    - "__pycache__"
+    - "node_modules"
+    - ".git"
+    - ".venv"
+    - "venv"
+    - "build"
+    - "dist"
+    - "*.min.js"
+    - "*.bundle.js"
+
+# Agent configuration
+agents:
+  architecture:
+    enabled: true
+    model_path: "models/checkpoints/architecture_gnn.pth"
+    confidence_threshold: 0.7
+
+  performance:
+    enabled: true
+    complexity_threshold: 15
+    n_plus_one_threshold: 3
+
+  security:
+    enabled: true
+    severity_threshold: "medium"
+    taint_analysis_depth: 5
+
+  maintainability:
+    enabled: true
+    model_path: "models/checkpoints/maintainability_llm"
+    max_method_lines: 50
+    min_documentation_coverage: 0.7
+
+# Orchestrator configuration
+orchestrator:
+  type: "reinforcement_learning"
+  model_path: "models/checkpoints/rl_orchestrator.pth"
+  max_refactorings_per_run: 20
+  time_budget_minutes: 30
+  risk_tolerance: "medium"
+
+# Database configuration
+database:
+  postgres:
+    host: "${POSTGRES_HOST:localhost}"
+    port: "${POSTGRES_PORT:5432}"
+    database: "${POSTGRES_DB:code_review}"
+    user: "${POSTGRES_USER:postgres}"
+    password: "${POSTGRES_PASSWORD:postgres}"
+
+  neo4j:
+    uri: "${NEO4J_URI:bolt://localhost:7687}"
+    user: "${NEO4J_USER:neo4j}"
+    password: "${NEO4J_PASSWORD:password}"
+
+  redis:
+    host: "${REDIS_HOST:localhost}"
+    port: "${REDIS_PORT:6379}"
+    ttl_seconds: 3600
+
+# Feature extraction
+features:
+  vector_dimension: 128
+  include_syntactic: true
+  include_structural: true
+  include_semantic: true
+  include_historical: false  # Requires git history
+
+# Refactoring configuration
+refactoring:
+  enabled_types:
+    - extract_method
+    - rename_method
+    - move_method
+    - extract_class
+    - rename_variable
+
+  verification:
+    generate_tests: true
+    run_existing_tests: true
+    require_test_pass: true
+    sandbox_execution: true
+
+  limits:
+    max_concurrent: 5
+    timeout_seconds: 300
+
+# Evaluation and metrics
+evaluation:
+  enabled: true
+  metrics:
+    - precision
+    - recall
+    - f1_score
+    - false_positive_rate
+
+  comparison_tools:
+    - sonarqube
+    - pmd
+    - eslint
