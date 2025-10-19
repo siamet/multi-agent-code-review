@@ -83,9 +83,7 @@ class BaseParser(ABC):
         # Check file size
         size_mb = path.stat().st_size / (1024 * 1024)
         if size_mb > max_size_mb:
-            raise ValueError(
-                f"File too large: {size_mb:.2f}MB (max: {max_size_mb}MB)"
-            )
+            raise ValueError(f"File too large: {size_mb:.2f}MB (max: {max_size_mb}MB)")
 
         return True
 

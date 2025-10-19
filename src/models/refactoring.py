@@ -92,45 +92,29 @@ class Refactoring(BaseModel):
     description: str = Field(..., description="Detailed description")
     rationale: str = Field(..., description="Why this is beneficial")
 
-    impact_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Expected impact (0-1)"
-    )
+    impact_score: float = Field(..., ge=0.0, le=1.0, description="Expected impact (0-1)")
     effort_estimate: int = Field(..., ge=1, description="Effort in minutes")
     risk_score: float = Field(..., ge=0.0, le=1.0, description="Risk level (0-1)")
 
-    dependencies: List[str] = Field(
-        default_factory=list, description="Dependent refactoring IDs"
-    )
+    dependencies: List[str] = Field(default_factory=list, description="Dependent refactoring IDs")
     conflicts_with: List[str] = Field(
         default_factory=list, description="Conflicting refactoring IDs"
     )
-    affected_entities: List[str] = Field(
-        default_factory=list, description="Affected entity IDs"
-    )
+    affected_entities: List[str] = Field(default_factory=list, description="Affected entity IDs")
 
-    code_changes: Dict[str, Any] = Field(
-        default_factory=dict, description="Description of changes"
-    )
+    code_changes: Dict[str, Any] = Field(default_factory=dict, description="Description of changes")
     validation_results: Dict[str, Any] = Field(
         default_factory=dict, description="Semantic verification results"
     )
-    test_results: Dict[str, Any] = Field(
-        default_factory=dict, description="Test outcomes"
-    )
+    test_results: Dict[str, Any] = Field(default_factory=dict, description="Test outcomes")
 
-    proposed_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Proposal timestamp"
-    )
-    applied_at: Optional[datetime] = Field(
-        default=None, description="Application timestamp"
-    )
+    proposed_at: datetime = Field(default_factory=datetime.utcnow, description="Proposal timestamp")
+    applied_at: Optional[datetime] = Field(default=None, description="Application timestamp")
 
     rollback_info: Optional[Dict[str, Any]] = Field(
         default=None, description="Rollback information"
     )
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     def is_applied(self) -> bool:
         """Check if refactoring has been applied.

@@ -24,9 +24,7 @@ class SourceLocation(BaseModel):
     end_line: int = Field(..., ge=1, description="Ending line (1-indexed)")
     start_column: int = Field(default=0, ge=0, description="Starting column (0-indexed)")
     end_column: int = Field(default=0, ge=0, description="Ending column (0-indexed)")
-    symbol_name: Optional[str] = Field(
-        default=None, description="Name of symbol at this location"
-    )
+    symbol_name: Optional[str] = Field(default=None, description="Name of symbol at this location")
 
     @field_validator("end_line")
     @classmethod
@@ -40,16 +38,10 @@ class SourceLocation(BaseModel):
     @classmethod
     def validate_end_column(cls, v: int, info) -> int:
         """Ensure end_column >= start_column when on same line."""
-        if (
-            "start_line" in info.data
-            and "start_column" in info.data
-            and "end_line" in info.data
-        ):
+        if "start_line" in info.data and "start_column" in info.data and "end_line" in info.data:
             if info.data["start_line"] == info.data["end_line"]:
                 if v < info.data["start_column"]:
-                    raise ValueError(
-                        "end_column must be >= start_column when on same line"
-                    )
+                    raise ValueError("end_column must be >= start_column when on same line")
         return v
 
     def contains(self, other: "SourceLocation") -> bool:
@@ -100,8 +92,7 @@ class SourceLocation(BaseModel):
         if self.start_line == self.end_line and other.start_line == other.end_line:
             if self.start_line == other.start_line:
                 return not (
-                    self.end_column < other.start_column
-                    or other.end_column < self.start_column
+                    self.end_column < other.start_column or other.end_column < self.start_column
                 )
 
         return True

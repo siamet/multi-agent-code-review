@@ -54,34 +54,18 @@ class CodeEntity(BaseModel):
     language: str = Field(..., description="Programming language")
 
     parent_id: Optional[str] = Field(default=None, description="Parent entity ID")
-    children_ids: List[str] = Field(
-        default_factory=list, description="Child entity IDs"
-    )
+    children_ids: List[str] = Field(default_factory=list, description="Child entity IDs")
 
-    docstring: Optional[str] = Field(
-        default=None, description="Documentation string"
-    )
-    signature: Optional[str] = Field(
-        default=None, description="Function/method signature"
-    )
-    modifiers: List[str] = Field(
-        default_factory=list, description="Access modifiers"
-    )
-    annotations: List[str] = Field(
-        default_factory=list, description="Type annotations/decorators"
-    )
+    docstring: Optional[str] = Field(default=None, description="Documentation string")
+    signature: Optional[str] = Field(default=None, description="Function/method signature")
+    modifiers: List[str] = Field(default_factory=list, description="Access modifiers")
+    annotations: List[str] = Field(default_factory=list, description="Type annotations/decorators")
 
-    complexity: Optional[int] = Field(
-        default=None, ge=1, description="Cyclomatic complexity"
-    )
+    complexity: Optional[int] = Field(default=None, ge=1, description="Cyclomatic complexity")
     lines_of_code: int = Field(default=0, ge=0, description="Lines of code")
 
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Creation timestamp"
-    )
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
 
     def is_function_like(self) -> bool:
         """Check if this entity is function-like (function, method, constructor).

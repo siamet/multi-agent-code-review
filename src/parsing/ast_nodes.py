@@ -163,9 +163,9 @@ class ASTNode:
         return {
             "node_type": self.node_type.value,
             "name": self.name,
-            "source_text": self.source_text[:100] + "..."
-            if len(self.source_text) > 100
-            else self.source_text,
+            "source_text": (
+                self.source_text[:100] + "..." if len(self.source_text) > 100 else self.source_text
+            ),
             "start_line": self.start_line,
             "end_line": self.end_line,
             "start_column": self.start_column,

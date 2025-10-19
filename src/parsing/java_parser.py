@@ -1,10 +1,10 @@
-"""Python code parser using tree-sitter."""
+"""Java code parser using tree-sitter."""
 
 from typing import Optional, Any
 
 try:
     from tree_sitter import Language, Parser
-    import tree_sitter_python
+    import tree_sitter_java
 
     TREE_SITTER_AVAILABLE = True
 except ImportError:
@@ -17,37 +17,37 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-class PythonParser(BaseParser):
-    """Parser for Python source code using tree-sitter.
+class JavaParser(BaseParser):
+    """Parser for Java source code using tree-sitter.
 
-    This parser uses tree-sitter to parse Python code and converts
+    This parser uses tree-sitter to parse Java code and converts
     the tree-sitter AST to our unified AST representation.
     """
 
     def __init__(self):
-        """Initialize the Python parser."""
-        super().__init__("python")
+        """Initialize the Java parser."""
+        super().__init__("java")
 
         if not TREE_SITTER_AVAILABLE:
             raise ImportError(
                 "tree-sitter not available. "
-                "Install with: pip install tree-sitter tree-sitter-python"
+                "Install with: pip install tree-sitter tree-sitter-java"
             )
 
         try:
-            # Create parser with Python language
-            python_language = Language(tree_sitter_python.language())
-            self.parser = Parser(python_language)
-            logger.info("Python parser initialized successfully")
+            # Create parser with Java language
+            java_language = Language(tree_sitter_java.language())
+            self.parser = Parser(java_language)
+            logger.info("Java parser initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize Python parser: {e}")
+            logger.error(f"Failed to initialize Java parser: {e}")
             raise
 
     def parse_file(self, file_path: str) -> Optional[ASTNode]:
-        """Parse a Python file.
+        """Parse a Java file.
 
         Args:
-            file_path: Path to Python file
+            file_path: Path to Java file
 
         Returns:
             Root AST node or None if parsing fails
@@ -61,10 +61,10 @@ class PythonParser(BaseParser):
             return None
 
     def parse_string(self, source_code: str, file_path: str = "<string>") -> Optional[ASTNode]:
-        """Parse Python source code from string.
+        """Parse Java source code from string.
 
         Args:
-            source_code: Python source code
+            source_code: Java source code
             file_path: Optional file path for context
 
         Returns:
@@ -80,7 +80,7 @@ class PythonParser(BaseParser):
             return ast_root
 
         except Exception as e:
-            logger.error(f"Failed to parse Python code: {e}")
+            logger.error(f"Failed to parse Java code: {e}")
             return None
 
     def _convert_node(self, ts_node: Any, source_code: str, file_path: str) -> ASTNode:
@@ -120,7 +120,7 @@ class PythonParser(BaseParser):
             end_line=end_line,
             start_column=start_column,
             end_column=end_column,
-            language="python",
+            language="java",
             attributes={"ts_type": ts_node.type},
         )
 
@@ -141,27 +141,53 @@ class PythonParser(BaseParser):
             Unified NodeType
         """
         type_mapping = {
-            "module": NodeType.MODULE,
-            "class_definition": NodeType.CLASS,
-            "function_definition": NodeType.FUNCTION,
-            "decorated_definition": NodeType.FUNCTION,
-            "import_statement": NodeType.IMPORT,
-            "import_from_statement": NodeType.IMPORT,
-            "assignment": NodeType.ASSIGNMENT,
+            # Structural
+            "program": NodeType.MODULE,
+            "class_declaration": NodeType.CLASS,
+            "interface_declaration": NodeType.CLASS,
+            "enum_declaration": NodeType.CLASS,
+            "method_declaration": NodeType.METHOD,
+            "constructor_declaration": NodeType.CONSTRUCTOR,
+            # Statements
+            "import_declaration": NodeType.IMPORT,
+            "package_declaration": NodeType.IMPORT,
+            "local_variable_declaration": NodeType.ASSIGNMENT,
+            "field_declaration": NodeType.FIELD,
+            "assignment_expression": NodeType.ASSIGNMENT,
             "return_statement": NodeType.RETURN,
             "if_statement": NodeType.IF,
             "for_statement": NodeType.FOR,
+            "enhanced_for_statement": NodeType.FOR,
             "while_statement": NodeType.WHILE,
+            "do_statement": NodeType.WHILE,
             "try_statement": NodeType.TRY,
-            "raise_statement": NodeType.THROW,
-            "call": NodeType.CALL,
-            "binary_operator": NodeType.BINARY_OP,
-            "unary_operator": NodeType.UNARY_OP,
+            "try_with_resources_statement": NodeType.TRY,
+            "throw_statement": NodeType.THROW,
+            # Expressions
+            "method_invocation": NodeType.CALL,
+            "object_creation_expression": NodeType.CALL,
+            "binary_expression": NodeType.BINARY_OP,
+            "unary_expression": NodeType.UNARY_OP,
+            "update_expression": NodeType.UNARY_OP,
             "identifier": NodeType.IDENTIFIER,
-            "integer": NodeType.LITERAL,
-            "float": NodeType.LITERAL,
-            "string": NodeType.LITERAL,
-            "comment": NodeType.COMMENT,
+            "decimal_integer_literal": NodeType.LITERAL,
+            "hex_integer_literal": NodeType.LITERAL,
+            "octal_integer_literal": NodeType.LITERAL,
+            "binary_integer_literal": NodeType.LITERAL,
+            "decimal_floating_point_literal": NodeType.LITERAL,
+            "hex_floating_point_literal": NodeType.LITERAL,
+            "string_literal": NodeType.LITERAL,
+            "character_literal": NodeType.LITERAL,
+            "true": NodeType.LITERAL,
+            "false": NodeType.LITERAL,
+            "null_literal": NodeType.LITERAL,
+            # Declarations
+            "variable_declarator": NodeType.VARIABLE,
+            "formal_parameter": NodeType.PARAMETER,
+            "spread_parameter": NodeType.PARAMETER,
+            # Other
+            "line_comment": NodeType.COMMENT,
+            "block_comment": NodeType.COMMENT,
             "block": NodeType.BLOCK,
         }
 
@@ -177,13 +203,37 @@ class PythonParser(BaseParser):
         Returns:
             Name string or None
         """
-        # For class and function definitions, find the name child
-        if ts_node.type in ["class_definition", "function_definition"]:
+        # For class, interface, enum, and method declarations, find the name child
+        if ts_node.type in [
+            "class_declaration",
+            "interface_declaration",
+            "enum_declaration",
+            "method_declaration",
+            "constructor_declaration",
+        ]:
             for child in ts_node.children:
                 if child.type == "identifier":
                     start = child.start_byte
                     end = child.end_byte
                     return source_code[start:end]
+
+        # For variable declarators, get the identifier
+        if ts_node.type in ["variable_declarator", "formal_parameter"]:
+            for child in ts_node.children:
+                if child.type == "identifier":
+                    start = child.start_byte
+                    end = child.end_byte
+                    return source_code[start:end]
+
+        # For field declarations, find the variable_declarator
+        if ts_node.type == "field_declaration":
+            for child in ts_node.children:
+                if child.type == "variable_declarator":
+                    for subchild in child.children:
+                        if subchild.type == "identifier":
+                            start = subchild.start_byte
+                            end = subchild.end_byte
+                            return source_code[start:end]
 
         # For identifiers, return the text directly
         if ts_node.type == "identifier":

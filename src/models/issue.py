@@ -90,29 +90,21 @@ class Issue(BaseModel):
     explanation: str = Field(..., description="Why this is an issue")
     recommendation: str = Field(..., description="How to fix")
 
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="Detection confidence (0-1)"
-    )
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Detection confidence (0-1)")
 
     agent_id: str = Field(..., description="Agent that detected this")
-    entity_id: Optional[str] = Field(
-        default=None, description="Primary affected entity"
-    )
+    entity_id: Optional[str] = Field(default=None, description="Primary affected entity")
     affected_entities: List[str] = Field(
         default_factory=list, description="All affected entity IDs"
     )
 
-    metrics: Dict[str, float] = Field(
-        default_factory=dict, description="Quantitative metrics"
-    )
+    metrics: Dict[str, float] = Field(default_factory=dict, description="Quantitative metrics")
     tags: List[str] = Field(default_factory=list, description="Classification tags")
 
     detected_at: datetime = Field(
         default_factory=datetime.utcnow, description="Detection timestamp"
     )
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     def is_critical(self) -> bool:
         """Check if this is a critical issue.

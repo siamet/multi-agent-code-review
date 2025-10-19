@@ -2,29 +2,56 @@
 
 import argparse
 import sys
-from pathlib import Path
+from typing import Optional, Union
 
 from src.utils.logger import setup_logging, get_logger
 from src.config.settings import get_settings
 from src.parsing.python_parser import PythonParser
+from src.parsing.javascript_parser import JavaScriptParser, TypeScriptParser
+from src.parsing.java_parser import JavaParser
 from src.parsing.ast_nodes import NodeType
 
 logger = get_logger(__name__)
 
 
-def analyze_file(file_path: str) -> None:
+def analyze_file(file_path: str, language: Optional[str] = None) -> None:
     """Analyze a single source file.
 
     Args:
         file_path: Path to source file
+        language: Programming language (auto-detected if not specified)
     """
     logger.info(f"Analyzing file: {file_path}")
 
     # Detect language and choose parser
-    if file_path.endswith(".py"):
-        parser = PythonParser()
+    if language:
+        language = language.lower()
     else:
-        logger.error(f"Unsupported file type: {file_path}")
+        # Auto-detect from file extension
+        if file_path.endswith(".py"):
+            language = "python"
+        elif file_path.endswith(".js") or file_path.endswith(".jsx"):
+            language = "javascript"
+        elif file_path.endswith(".ts") or file_path.endswith(".tsx"):
+            language = "typescript"
+        elif file_path.endswith(".java"):
+            language = "java"
+        else:
+            logger.error(f"Unsupported file type: {file_path}")
+            return
+
+    # Choose appropriate parser
+    parser: Union[PythonParser, JavaScriptParser, TypeScriptParser, JavaParser]
+    if language == "python":
+        parser = PythonParser()
+    elif language == "javascript":
+        parser = JavaScriptParser()
+    elif language == "typescript":
+        parser = TypeScriptParser()
+    elif language == "java":
+        parser = JavaParser()
+    else:
+        logger.error(f"Unsupported language: {language}")
         return
 
     # Parse the file
@@ -78,7 +105,7 @@ def main() -> int:
 
     # Handle commands
     if args.command == "analyze":
-        analyze_file(args.path)
+        analyze_file(args.path, args.language)
         return 0
 
     elif args.command == "version":

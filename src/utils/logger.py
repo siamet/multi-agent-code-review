@@ -19,9 +19,7 @@ def setup_logging(
         format_string: Optional custom format string
     """
     if format_string is None:
-        format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        format_string = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     # Configure root logger
     logging.basicConfig(
