@@ -66,6 +66,7 @@ module = [
     "tree_sitter_languages.*",
     "dgl.*",
     "neo4j.*",
+    "networkx.*",
 ]
 ignore_missing_imports = true
 

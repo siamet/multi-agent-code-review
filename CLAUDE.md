@@ -5,8 +5,8 @@ This file provides comprehensive guidance to Claude Code when working with this 
 ## 🎯 Quick Session Start
 - Use `/status` to check current progress and priorities
 - Use `/prime` for comprehensive project analysis and context updates
-- Current development focus: **[Set by /prime command]**
-- Active development phase: **[Set by /prime command]**
+- Current development focus: **Phase 2 — Individual Agent Development**
+- Active development phase: **Phase 2 (Phases 0–1 complete)**
 
 ---
 
@@ -43,7 +43,7 @@ Avoid building functionality on speculation. Implement features only when they a
 ---
 
 ## 🛠️ Technology Stack & Environment
-**Last updated:** October 2025 (via /prime command)
+**Last updated:** February 2026
 
 ### Primary Technologies
 - **Language**: Python 3.9+
@@ -159,7 +159,7 @@ Raises:
 ---
 
 ## 🔧 Project-Specific Context
-**Last updated:** October 2025 (via /prime command)
+**Last updated:** February 2026
 
 ### Current Architecture
 
@@ -212,18 +212,24 @@ Raises:
 - `CLAUDE.md` - This file - AI development context
 - `docs/planning/` - Additional planning materials
 
-**Source Structure (To Be Created):**
-- `src/parsing/` - Multi-language parsers (tree-sitter integration)
-- `src/graph/` - Knowledge graph construction (NetworkX, Neo4j)
+**Source Structure:**
+- `src/parsing/` - Multi-language parsers: Python, Java, JavaScript, TypeScript (tree-sitter)
+- `src/graph/` - Knowledge graph construction (NetworkX in-memory, Neo4j Protocol deferred)
+- `src/metrics/` - Entity metrics (complexity, LOC, nesting) and structural metrics (coupling, cohesion, DIT, NOC)
+- `src/features/` - 128-dim feature vector generation with min-max normalization
+- `src/analysis/` - CFG builder, symbol tables, data flow analysis, taint analysis framework
+- `src/pipeline/` - End-to-end pipeline orchestration with Protocol-based cache/storage backends
+- `src/models/` - Core data models (CodeEntity, Issue, Refactoring, SourceLocation)
+- `src/config/` - Configuration management (parser config, settings)
+- `src/utils/` - Shared utilities (logger)
+- `tests/` - 178 tests across 16 test files, 88% coverage
+
+**To Be Created (Phase 2+):**
 - `src/agents/` - Four specialized agents (Architecture, Performance, Security, Maintainability)
-- `src/models/` - ML models (GNN, fine-tuned LLM, RL orchestrator)
-- `src/refactoring/` - Refactoring execution engine
 - `src/orchestrator/` - Multi-agent coordination (RL-based)
+- `src/refactoring/` - Refactoring execution engine
 - `src/api/` - FastAPI REST endpoints and web interface
-- `tests/` - Comprehensive test suite (pytest)
 - `data/` - Benchmark datasets (25 repos, 5000+ labeled smells)
-- `models/` - Trained model checkpoints
-- `config/` - Configuration files (YAML)
 
 ### Database Schema
 
@@ -417,34 +423,56 @@ mypy src/                         # Type checking
 ---
 
 ## 🎯 Current Development Context
-**Last updated:** October 2025 (via /prime command)
+**Last updated:** February 2026
 
 ### Active Phase
-**Phase**: Phase 0 - Foundation & Infrastructure (CRITICAL)
-**Focus**: Project structure setup and multi-language parsing system
-**Progress**: 0% complete (planning phase complete, implementation not started)
+**Phase**: Phase 2 — Individual Agent Development
+**Focus**: Building the four specialized agents (Architecture, Performance, Security, Maintainability)
+**Progress**: Phase 0 and Phase 1 complete; Phase 2 starting
+
+### Completed Phases
+
+**Phase 0 — Foundation & Infrastructure (Complete):**
+- Project structure with 35+ files, Python 3.9+ with full type hints
+- tree-sitter parsers for Python, Java, JavaScript, TypeScript
+- Core data models (CodeEntity, Issue, Refactoring, SourceLocation) with Pydantic validation
+- pytest infrastructure, GitHub Actions CI/CD, black/flake8/mypy
+
+**Phase 1 — Core Analysis Pipeline (Complete):**
+- Knowledge graph (NetworkX-backed, 10 relationship types, cycle detection, incremental updates)
+- Code metrics (entity-level + structural: complexity, LOC, coupling, cohesion, DIT, NOC)
+- 128-dim feature vectors (32 syntactic + 32 structural + 64 reserved for semantic/historical)
+- Static analysis (CFG builder, symbol tables, data flow, taint analysis framework)
+- Pipeline orchestration (parse → graph → metrics → features → CFG → taint)
+- 178 tests passing, 88% coverage, all linting clean
 
 ### Recent Decisions
+**February 2026:**
+- Deferred **CodeBERT** semantic embeddings entirely (vector slots zeroed, reserved for future)
+- Chose **Protocols + in-memory only** for storage/cache backends (Redis/PostgreSQL/Neo4j adapters deferred)
+- Cross-file reference resolution is **name-based** (ambiguous matches left unresolved)
+
 **October 2025:**
-- Chose **tree-sitter** for multi-language parsing (over language-specific parsers) for unified AST representation
-- Selected **PyTorch + DGL** for GNN implementation (over TensorFlow) for flexibility and graph-specific features
-- Decided on **CodeLlama-7B** for LLM agent (over larger models) to fit single GPU constraint (16GB)
-- Adopted **Stable-Baselines3 PPO** for RL orchestrator (proven reliability, good documentation)
-- Chose **FastAPI** over Flask/Django for API (async support, auto-documentation, performance)
+- Chose **tree-sitter** for multi-language parsing (unified AST representation)
+- Selected **PyTorch + DGL** for GNN implementation
+- Decided on **CodeLlama-7B** for LLM agent (fits 16GB GPU)
+- Adopted **Stable-Baselines3 PPO** for RL orchestrator
+- Chose **FastAPI** for API layer
 
 ### Next Priorities
-1. **Create project structure** - Set up src/, tests/, docs/, config/ directories with proper organization
-2. **Set up Python environment** - Create venv, requirements.txt with core dependencies (PyTorch, tree-sitter, FastAPI)
-3. **Implement tree-sitter integration** - Start with Python parser, then expand to JavaScript/Java/TypeScript
-4. **Design core data models** - Define CodeEntity, AST abstraction layer, Issue, and Refactoring models
-5. **Configure CI/CD pipeline** - GitHub Actions for automated testing, linting, and type checking
+1. **Design base agent interface** — Common agent protocol, communication, and result structures
+2. **Architecture Agent (GNN-based)** — God Class, Feature Envy, Circular Dependency detection
+3. **Performance Agent (Static Analysis)** — Algorithmic complexity, memory leaks, N+1 queries
+4. **Security Agent (Taint Analysis)** — SQL injection, XSS, auth checks, crypto misuse
+5. **Maintainability Agent (LLM-based)** — Readability, documentation quality, naming conventions
 
 ### Known Issues & Blockers
-- **Hardware constraint**: Training large GNN and fine-tuning LLM must fit in 16GB GPU memory
+- **CodeBERT embeddings zeroed** — Semantic feature slots (64:96) reserved but not yet populated
+- **Neo4j/Redis/PostgreSQL** — Protocol interfaces defined, adapters not yet implemented
+- **Cross-file references** — Name-based resolution may be ambiguous for common names
+- **CFG builder** — Tested primarily with Python AST patterns
+- **Hardware constraint**: GNN training and LLM fine-tuning must fit in 16GB GPU memory
 - **Dataset availability**: Need to curate 25 open-source repos and manually label 5000+ code smells
-- **Time constraint**: 13-week timeline for complete system + research paper
-- **Baseline comparison**: Need access to SonarQube, PMD, ESLint for fair evaluation
-- **Model training cost**: Limited cloud compute budget ($300 credits) - must optimize efficiency
 
 ---
 
@@ -515,4 +543,4 @@ When analyzing code or debugging:
 
 ---
 
-*This document is automatically updated by `/prime` command and should be maintained as the project evolves. Last updated: October 2025*
+*This document is automatically updated by `/prime` command and should be maintained as the project evolves. Last updated: February 2026*

@@ -1,76 +1,72 @@
 """Main entry point for the multi-agent code review system."""
 
 import argparse
+import os
 import sys
-from typing import Optional, Union
-
 from src.utils.logger import setup_logging, get_logger
 from src.config.settings import get_settings
-from src.parsing.python_parser import PythonParser
-from src.parsing.javascript_parser import JavaScriptParser, TypeScriptParser
-from src.parsing.java_parser import JavaParser
-from src.parsing.ast_nodes import NodeType
+from src.pipeline.pipeline import AnalysisPipeline, PipelineResult
 
 logger = get_logger(__name__)
 
 
-def analyze_file(file_path: str, language: Optional[str] = None) -> None:
-    """Analyze a single source file.
+def analyze_path(path: str) -> None:
+    """Analyze a file or directory through the full pipeline.
 
     Args:
-        file_path: Path to source file
-        language: Programming language (auto-detected if not specified)
+        path: Path to a source file or directory.
     """
-    logger.info(f"Analyzing file: {file_path}")
+    logger.info(f"Analyzing: {path}")
+    pipeline = AnalysisPipeline()
 
-    # Detect language and choose parser
-    if language:
-        language = language.lower()
+    if os.path.isdir(path):
+        result = pipeline.analyze_directory(path)
+    elif os.path.isfile(path):
+        result = pipeline.analyze_file(path)
     else:
-        # Auto-detect from file extension
-        if file_path.endswith(".py"):
-            language = "python"
-        elif file_path.endswith(".js") or file_path.endswith(".jsx"):
-            language = "javascript"
-        elif file_path.endswith(".ts") or file_path.endswith(".tsx"):
-            language = "typescript"
-        elif file_path.endswith(".java"):
-            language = "java"
-        else:
-            logger.error(f"Unsupported file type: {file_path}")
-            return
-
-    # Choose appropriate parser
-    parser: Union[PythonParser, JavaScriptParser, TypeScriptParser, JavaParser]
-    if language == "python":
-        parser = PythonParser()
-    elif language == "javascript":
-        parser = JavaScriptParser()
-    elif language == "typescript":
-        parser = TypeScriptParser()
-    elif language == "java":
-        parser = JavaParser()
-    else:
-        logger.error(f"Unsupported language: {language}")
+        print(f"Error: '{path}' is not a valid file or directory")
         return
 
-    # Parse the file
-    ast = parser.parse_file(file_path)
+    _print_results(result, path)
 
-    if ast:
-        logger.info(f"Successfully parsed {file_path}")
-        logger.info(f"AST root: {ast}")
 
-        # Print some basic statistics
-        classes = ast.get_descendants(NodeType.CLASS)
-        functions = ast.get_descendants(NodeType.FUNCTION)
+def _print_results(result: PipelineResult, path: str) -> None:
+    """Print pipeline results to stdout."""
+    print(f"\n=== Analysis Results for {path} ===")
+    print(f"  Files processed:    {result.files_processed}")
+    print(f"  Entities found:     {result.entities_found}")
+    print(f"  Relationships:      {result.graph.relationship_count}")
+    print(f"  Processing time:    {result.processing_time_seconds:.2f}s")
 
-        print(f"\n Analysis Results for {file_path}")
-        print(f"   Classes found: {len(classes)}")
-        print(f"   Functions found: {len(functions)}")
-        print(f"   Total lines: {ast.end_line}")
-    else:
-        logger.error(f"Failed to parse {file_path}")
+    # Entity breakdown
+    from src.models.code_entity import EntityType
+
+    for etype in EntityType:
+        entities = result.graph.get_entities_by_type(etype)
+        if entities:
+            print(f"  {etype.value:15s}:   {len(entities)}")
+
+    # Metrics summary
+    if result.entity_metrics:
+        complexities = [m.cyclomatic_complexity for m in result.entity_metrics.values()]
+        avg_cc = sum(complexities) / len(complexities)
+        max_cc = max(complexities)
+        print(f"\n  Avg complexity:     {avg_cc:.1f}")
+        print(f"  Max complexity:     {max_cc}")
+
+    # Feature vectors
+    print(f"  Feature vectors:    {len(result.feature_vectors)}")
+
+    # CFGs
+    print(f"  CFGs built:         {len(result.cfgs)}")
+
+    # Taint flows
+    if result.taint_flows:
+        unsanitized = [f for f in result.taint_flows if not f.sanitized]
+        print(f"\n  Taint flows found:  {len(result.taint_flows)}")
+        print(f"  Unsanitized:        {len(unsanitized)}")
+        for flow in unsanitized[:5]:
+            print(f"    [{flow.sink.vulnerability}] " f"{flow.source.name} -> {flow.sink.name}")
 
 
 def main() -> int:
@@ -88,11 +84,6 @@ def main() -> int:
     # Analyze command
     analyze_parser = subparsers.add_parser("analyze", help="Analyze code files")
     analyze_parser.add_argument("path", help="Path to file or directory to analyze")
-    analyze_parser.add_argument(
-        "--language",
-        choices=["python", "javascript", "java", "typescript"],
-        help="Programming language (auto-detected if not specified)",
-    )
 
     # Version command
     subparsers.add_parser("version", help="Show version information")
@@ -105,12 +96,12 @@ def main() -> int:
 
     # Handle commands
     if args.command == "analyze":
-        analyze_file(args.path, args.language)
+        analyze_path(args.path)
         return 0
 
     elif args.command == "version":
-        print("Multi-Agent Code Review System v0.1.0")
-        print("Phase 0: Foundation & Infrastructure")
+        print("Multi-Agent Code Review System v0.2.0")
+        print("Phase 1: Core Analysis Pipeline")
         return 0
 
     else:

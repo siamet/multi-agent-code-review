@@ -96,3 +96,10 @@ docs/planning/
 # Temporary files
 tmp/
 temp/
+
+# Coding Agents
+.code-search/
+.claude
+.codex
+.opencode
+.serena
